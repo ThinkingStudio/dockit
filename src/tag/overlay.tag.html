@@ -1,0 +1,40 @@
+<overlay>
+  <style>
+  #overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    display: none;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    opacity: 0;
+    background: #444;
+    -webkit-transition: all 0.3s;
+    transition: all 0.3s;
+  }
+  #overlay.show {
+    display: block;
+    opacity: 0.8;
+  }
+  </style>
+  <div id="overlay" class="{show: show()}"></div>
+  <script>
+    var show = false, self = this;
+    self.show = function() {
+      return show;
+    };
+    RiotControl.on(EVENT.TOGGLE_OVERLAY, function() {
+      show = !show;
+      self.update();
+    });
+    RiotControl.on([EVENT.ASK_NEW_FILENAME, EVENT.ASK_RENAME, EVENT.SHOW_HELP, EVENT.SHOW_COMMAND], function() {
+      show = true;
+      self.update();
+    });
+    RiotControl.on([EVENT.BIG_INPUT_ENTERED, EVENT.BIG_INPUT_CANCELED, EVENT.HIDE_HELP, EVENT.HIDE_COMMAND, EVENT.CANCEL_ALL], function() {
+      show = false;
+      self.update();
+    });
+  </script>
+</overlay>

@@ -1,0 +1,95 @@
+<big-input>
+  <style>
+    #big-input {
+      display: none;
+      position: fixed;
+      border-radius: 5px;
+      top: 30%;
+      left: 50%;
+      -webkit-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 50px;
+      padding: 10px 15px;
+      font-size: 24pt;
+      font-weight: bold;
+      z-index: 9999;
+    }
+    #big-input.show {
+      display: block
+    }
+  </style>
+  <input id="big-input" class="{show: show()}" autofocus>
+  <script>
+    var show = false, self = this, type, input;
+    this.show = function() {
+      return show;
+    };
+    function hideMe() {
+      show = false;
+      type = false;
+      self.update();
+    }
+    function createSelection(field, start, end) {
+      if( field.createTextRange ) {
+        var selRange = field.createTextRange();
+        selRange.collapse(true);
+        selRange.moveStart('character', start);
+        selRange.moveEnd('character', end);
+        selRange.select();
+        field.focus();
+      } else if( field.setSelectionRange ) {
+        field.focus();
+        field.setSelectionRange(start, end);
+      } else if( typeof field.selectionStart != 'undefined' ) {
+        field.selectionStart = start;
+        field.selectionEnd = end;
+        field.focus();
+      }
+    }
+    RiotControl.on(EVENT.ASK_NEW_FILENAME, function(filename) {
+      show = true;
+      type = 'new-filename';
+      document.getElementById('big-input').value = filename;
+      self.update();
+    });
+    RiotControl.on(EVENT.ASK_RENAME, function(filename) {
+      show = true;
+      type = 'rename';
+      document.getElementById('big-input').value = filename;
+      self.update();
+    });
+
+    RiotControl.on(EVENT.CANCEL_ALL, function() {
+      RiotControl.trigger(EVENT.BIG_INPUT_CANCELED);
+      hideMe();
+    });
+
+    this.on('updated', function() {
+      if (!input) {
+        input = document.getElementById('big-input');
+        input.addEventListener('keydown', function(e) {
+          if (13 == e.keyCode) {
+            e.preventDefault();
+            RiotControl.trigger(EVENT.BIG_INPUT_ENTERED, input.value, type);
+            hideMe();
+            return false;
+          } else if (27 == e.keyCode) {
+            e.preventDefault();
+            RiotControl.trigger(EVENT.BIG_INPUT_CANCELED);
+            hideMe();
+            return false;
+          }
+        });
+      }
+      if (show) {
+        input.focus();
+        if (type == 'new-filename' || type == 'rename') {
+          var s = input.value;
+          var start = s.lastIndexOf('/') + 1, end = s.length - 3;
+          createSelection(input, start, end);
+        }
+      }
+    });
+  </script>
+</big-input>
